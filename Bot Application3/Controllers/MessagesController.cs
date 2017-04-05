@@ -1,14 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json.Linq;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Requests;
+using Google.Apis.Calendar.v3;
+using Google.Apis.Util.Store;
 
 namespace Bot_Application3
 {
@@ -54,16 +61,21 @@ namespace Bot_Application3
                     replyToConversation.Attachments = new List<Attachment>();
 
                     List<CardAction> cardButtons = new List<CardAction>();
-
+                    GoogleAuthorizationCodeRequestUrl url = new GoogleAuthorizationCodeRequestUrl(new Uri("https://accounts.google.com/o/oauth2/v2/auth"));
+                    url.ClientId = "208591536551-cs18qgtasrdjha3vb7b22j09phblif5v.apps.googleusercontent.com";
+                    url.AccessType = "offline";
+                    url.Scope = CalendarService.Scope.CalendarReadonly;
+                    url.RedirectUri = "http://localhost:3979/api/authorize";
                     CardAction plButton = new CardAction()
 
                     {
 
-                        Value = "https://accounts.google.com/o/oauth2/auth",
+                        Value = url.Build(),
 
                         Type = "signin",
 
-                        Title = "Authentication Required"
+                        Title = "Authentication Required",
+                        
 
                     };
 
@@ -151,8 +163,21 @@ namespace Bot_Application3
 
                 }
 
+                else if (activity.Text == "test")
+                {
+                    UserCredential credential;
+                    using (var stream = new FileStream(HttpContext.Current.Server.MapPath("~/client_secret.json"), FileMode.Open, FileAccess.Read))
+                    {
+                       
+                       credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                          GoogleClientSecrets.Load(stream).Secrets,
+                          new[] { CalendarService.Scope.CalendarReadonly },
+                          "okke000@gmail.com", CancellationToken.None,null, new LocalServerCodeReceiver());
+                    }
+                    
+                   
+                }
                 else
-
                 {
 
                     ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
