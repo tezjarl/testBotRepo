@@ -15,6 +15,8 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Requests;
 using Google.Apis.Calendar.v3;
+using Google.Apis.Calendar.v3.Data;
+using Google.Apis.Services;
 using Google.Apis.Util.Store;
 
 namespace Bot_Application3
@@ -174,8 +176,14 @@ namespace Bot_Application3
                           new[] { CalendarService.Scope.CalendarReadonly },
                           "okke000@gmail.com", CancellationToken.None,null, new LocalServerCodeReceiver());
                     }
-                    
-                   
+                    var service = new CalendarService(new BaseClientService.Initializer()
+                    {
+                        HttpClientInitializer = credential,
+                        ApplicationName = "BotApp"
+                    });
+                    EventsResource.ListRequest request = service.Events.List("primary");
+                    Events events = request.Execute();
+
                 }
                 else
                 {
